@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mars Rover Game</title>
+    <style>
+        body{
+            background-color: rgb(49, 49, 49);
+        }
+        h1{
+            color: rgb(255, 255, 255);
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            border: 1px dashed rgb(255, 157, 0);
+            padding: 10px;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+        }
+        td.rover {
+            background-color: lightgray;
+        }
+        td.obstacle {
+            background-color: red;
+        }
+        td.goal {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mars Rover</h1>
+    <input type="number" id="height" min="1" value="5">
+    <input type="number" id="width" min="1" value="5">
+    <button id="generateBtn">Generate Field</button>
+    <br><br>
+    <button id="moveUp">/\</button>
+    <button id="moveDown">\/</button>
+    <button id="moveLeft"><--</button>
+    <button id="moveRight">--></button>
+    <br><br>
+    <div id="gridContainer"></div>
+
+    <script>
+        let roverPosition = null;
+        const generateBtn = document.getElementById('generateBtn');
+        const gridContainer = document.getElementById('gridContainer');
+
+        generateBtn.addEventListener('click', generateField);
+        document.getElementById('moveUp').addEventListener('click', () => moveRover('ArrowUp'));
+        document.getElementById('moveDown').addEventListener('click', () => moveRover('ArrowDown'));
+        document.getElementById('moveLeft').addEventListener('click', () => moveRover('ArrowLeft'));
+        document.getElementById('moveRight').addEventListener('click', () => moveRover('ArrowRight'));
+
+        function generateField() {
+            const height = parseInt(document.getElementById('height').value);
+            const width = parseInt(document.getElementById('width').value);
+
+            gridContainer.innerHTML = '';
+
+            const table = document.createElement('table');
+
+            for (let row = 0; row < height; row++) {
+                const tableRow = document.createElement('tr');
+
+                for (let col = 0; col < width; col++) {
+                    const cell = document.createElement('td');
+                    cell.classList.add('cell');
+                    cell.dataset.position = `${row},${col}`;
+                    tableRow.appendChild(cell);
+                }
+
+                table.appendChild(tableRow);
+            }
+
+            const cells = Array.from(table.querySelectorAll('.cell'));
+            const randomIndex = Math.floor(Math.random() * cells.length);
+            roverPosition = cells[randomIndex].dataset.position;
+            cells[randomIndex].classList.add('rover');
+            cells[randomIndex].textContent = '🚀';
+
+            
+            for (let i = 0; i < Math.min(10, cells.length); i++) {
+                let obstacleIndex;
+                do {
+                    obstacleIndex = Math.floor(Math.random() * cells.length);
+                } while (obstacleIndex === randomIndex || cells[obstacleIndex].classList.contains('obstacle'));
+                cells[obstacleIndex].classList.add('obstacle');
+                cells[obstacleIndex].textContent = 'O';
+            }
+
+
+            let goalIndex;
+            do {
+                goalIndex = Math.floor(Math.random() * cells.length);
+            } while (goalIndex === randomIndex || cells[goalIndex].classList.contains('obstacle'));
+            cells[goalIndex].classList.add('goal');
+            cells[goalIndex].textContent = 'O';
+            cells[goalIndex].style.color = 'green';
+
+            gridContainer.appendChild(table);
+        }
+
+        function moveRover(direction) {
+            const [roverRow, roverCol] = roverPosition.split(',').map(Number);
+            const height = parseInt(document.getElementById('height').value);
+            const width = parseInt(document.getElementById('width').value);
+            let newRow = roverRow;
+            let newCol = roverCol;
+
+            switch (direction) {
+                case 'ArrowUp':
+                    newRow = (roverRow - 1 + height) % height;
+                    break;
+                case 'ArrowDown':
+                    newRow = (roverRow + 1) % height;
+                    break;
+                case 'ArrowLeft':
+                    newCol = (roverCol - 1 + width) % width;
+                    break;
+                case 'ArrowRight':
+                    newCol = (roverCol + 1) % width;
+                    break;
+            }
+
+            const newCell = document.querySelector(`[data-position='${newRow},${newCol}']`);
+
+            if (newCell.classList.contains('obstacle')) {
+                alert('You lost!');
+                return;
+            }
+
+            if (newCell.classList.contains('goal')) {
+                alert('You won!');
+                return;
+            }
+
+            const oldCell = document.querySelector(`[data-position='${roverRow},${roverCol}']`);
+            oldCell.textContent = '';
+            oldCell.classList.remove('rover');
+
+            newCell.textContent = '🚀';
+            newCell.classList.add('rover');
+            roverPosition = `${newRow},${newCol}`;
+        }
+    </script>
+</body>
+</html>
